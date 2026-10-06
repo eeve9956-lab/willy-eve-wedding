@@ -154,7 +154,11 @@ h2{font-weight:400;font-size:1.55rem;letter-spacing:.3em;padding-left:.3em;line-
 .cal-g .me{color:#fff;z-index:0}
 .cal-g .me::before{content:"";position:absolute;width:34px;height:34px;border-radius:50%;background:var(--rose);z-index:-1}
 .count{margin-top:30px;font-size:.98rem;letter-spacing:.18em;color:var(--mist)}
-.count b{font-family:var(--latin);font-size:1.9rem;font-weight:500;color:var(--wine);margin:0 .15em}
+.cd-lead{display:block;margin-bottom:14px}
+.cd{display:flex;justify-content:center;gap:8px}
+.cd-u{min-width:64px;padding:10px 4px 8px;border:1px solid rgba(179,139,93,.55);background:rgba(252,247,244,.75);border-radius:4px;line-height:1.2}
+.cd-u b{display:block;font-family:var(--latin);font-size:2rem;font-weight:500;color:var(--wine);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.cd-u i{display:block;font-style:normal;font-size:.78rem;letter-spacing:.2em;padding-left:.2em;color:var(--mist);margin-top:2px}
 
 /* ---------- costume photo ---------- */
 .wide{padding:0 0 84px}
@@ -400,7 +404,7 @@ h2{font-weight:400;font-size:1.55rem;letter-spacing:.3em;padding-left:.3em;line-
       mapBtn:'Google Maps 導航',hint:'點擊按鈕開啟 Google Maps 導航',
       closeP:'期待與您相見<br>與我們一起迎接這美好的一天',
       wk:'日一二三四五六',toggle:'日',title:'Willy & Eve 婚禮邀請 · 2026.11.22',
-      cd:n=>'距離婚禮還有<b>'+n+'</b>天',today:'就是今天，期待與您相見',past:'感謝您的祝福'},
+      cdLead:'距離婚禮還有',u:['天','時','分','秒'],today:'就是今天，期待與您相見',past:'感謝您的祝福'},
     ja:{coverSmall:'謹んでご招待申し上げます',open:'招待状を開く',note:'開くと音楽が流れ、自動でスクロールします',married:'私たち、結婚します',
       inviteH:'ご招待',inviteP:'一年でいちばん美しい季節に<br>私たちは新たな人生の一歩を<br>共に歩むことにいたしました<br>ぜひ私たちの幸せを<br>見守っていただければ幸いです',
       coupleH:'新郎 &amp; 新婦',groom:'新郎',bride:'新婦',time:'挙式時間　<b>11:30</b> AM',
@@ -408,11 +412,11 @@ h2{font-weight:400;font-size:1.55rem;letter-spacing:.3em;padding-left:.3em;line-
       mapBtn:'Google Maps で道順を見る',hint:'ボタンを押すと Google Maps が開きます',
       closeP:'お会いできる日を楽しみにしています<br>素敵な一日を一緒に迎えましょう',
       wk:'日月火水木金土',toggle:'中',title:'Willy & Eve 結婚式のご招待 · 2026.11.22',
-      cd:n=>'結婚式まであと<b>'+n+'</b>日',today:'いよいよ今日です。お会いできるのを楽しみにしています',past:'温かいお祝いをありがとうございました'}
+      cdLead:'結婚式まであと',u:['日','時間','分','秒'],today:'いよいよ今日です。お会いできるのを楽しみにしています',past:'温かいお祝いをありがとうございました'}
   };
   let lang=/[?&]lang=ja/.test(location.search)?'ja':'zh';
   const grid=document.getElementById('calGrid'), cEl=document.getElementById('count');
-  const diff=Math.ceil((new Date(2026,10,22)-new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400000);
+  const TARGET=new Date('2026-11-22T11:30:00+08:00').getTime(); // Taiwan time
   function buildCal(){
     grid.innerHTML='';
     L[lang].wk.split('').forEach(d=>{const s=document.createElement('span');s.className='w';s.textContent=d;grid.appendChild(s)});
@@ -427,9 +431,21 @@ h2{font-weight:400;font-size:1.55rem;letter-spacing:.3em;padding-left:.3em;line-
     document.querySelectorAll('[data-i]').forEach(el=>{el.innerHTML=D[el.dataset.i]});
     document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.textContent=D.toggle);
     document.getElementById('openBtn').setAttribute('aria-label',D.open);
-    cEl.innerHTML=diff>0?D.cd(diff):diff===0?D.today:D.past;
+    renderCount();
     buildCal();
   }
+  function renderCount(){
+    const D=L[lang], ms=TARGET-Date.now();
+    if(ms<=0){cEl.innerHTML=(-ms<864e5)?D.today:D.past;return}
+    let s=Math.floor(ms/1000);
+    const d=Math.floor(s/86400);s%=86400;
+    const h=Math.floor(s/3600);s%=3600;
+    const m=Math.floor(s/60);s%=60;
+    const p=n=>String(n).padStart(2,'0');
+    cEl.innerHTML='<span class="cd-lead">'+D.cdLead+'</span><span class="cd">'+
+      [[d,0],[p(h),1],[p(m),2],[p(s),3]].map(([v,i])=>'<span class="cd-u"><b>'+v+'</b><i>'+D.u[i]+'</i></span>').join('')+'</span>';
+  }
+  setInterval(renderCount,1000);
   document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.addEventListener('click',()=>setLang(lang==='zh'?'ja':'zh')));
   setLang(lang);
 
